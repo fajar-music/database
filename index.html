@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; color: #333; }
+        .navbar { background: #1a73e8; color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .navbar h1 { font-size: 20px; }
+        .navbar span { font-size: 14px; opacity: 0.8; }
+        .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .stat-card .label { font-size: 13px; color: #666; margin-bottom: 8px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; }
+        .stat-card .value.blue { color: #1a73e8; }
+        .stat-card .value.green { color: #0d9488; }
+        .stat-card .value.orange { color: #e67e22; }
+        .stat-card .value.red { color: #e74c3c; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 24px; }
+        .card h2 { font-size: 16px; margin-bottom: 16px; color: #333; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background: #f8f9fa; font-weight: 600; color: #555; }
+        tr:hover { background: #f8f9fa; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge.done { background: #d1fae5; color: #065f46; }
+        .badge.progress { background: #fef3c7; color: #92400e; }
+        .badge.pending { background: #fee2e2; color: #991b1b; }
+        .footer { text-align: center; padding: 24px; color: #999; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Dashboard Report</h1>
+        <span id="clock"></span>
+    </div>
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="label">Total Report</div>
+                <div class="value blue" id="total">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Selesai</div>
+                <div class="value green" id="done">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Dalam Proses</div>
+                <div class="value orange" id="progress">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Pending</div>
+                <div class="value red" id="pending">0</div>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Daftar Report Terbaru</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Domain</th>
+                        <th>Jenis</th>
+                        <th>Tanggal</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <tr>
+                        <td>1</td>
+                        <td>contoh-phising.com</td>
+                        <td>Phishing</td>
+                        <td>2026-04-08</td>
+                        <td><span class="badge done">Selesai</span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>fake-login.net</td>
+                        <td>Phishing</td>
+                        <td>2026-04-08</td>
+                        <td><span class="badge progress">Proses</span></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>scam-site.org</td>
+                        <td>Scam</td>
+                        <td>2026-04-07</td>
+                        <td><span class="badge pending">Pending</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="footer">Dashboard Report &copy; 2026</div>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleString('id-ID');
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        document.getElementById('total').textContent = '3';
+        document.getElementById('done').textContent = '1';
+        document.getElementById('progress').textContent = '1';
+        document.getElementById('pending').textContent = '1';
+    </script>
+</body>
+</html>
