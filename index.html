@@ -30,12 +30,32 @@
         .badge.progress { background: #fef3c7; color: #92400e; }
         .badge.pending { background: #fee2e2; color: #991b1b; }
         .footer { text-align: center; padding: 24px; color: #999; font-size: 13px; }
+        /* Modal & Form */
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-primary { background: #1a73e8; color: white; }
+        .btn-primary:hover { background: #1557b0; }
+        .btn-danger { background: #e74c3c; color: white; padding: 4px 10px; font-size: 12px; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-edit { background: #e67e22; color: white; padding: 4px 10px; font-size: 12px; }
+        .btn-edit:hover { background: #d35400; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 450px; }
+        .modal h3 { margin-bottom: 16px; }
+        .modal label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; margin-top: 12px; }
+        .modal input, .modal select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        .modal-actions { margin-top: 20px; display: flex; gap: 8px; justify-content: flex-end; }
+        .btn-cancel { background: #eee; color: #333; }
+        .header-actions { display: flex; align-items: center; gap: 12px; }
+        .actions-cell { display: flex; gap: 4px; }
     </style>
 </head>
 <body>
     <div class="navbar">
         <h1>Dashboard Report</h1>
-        <span id="clock"></span>
+        <div class="header-actions">
+            <span id="clock"></span>
+        </div>
     </div>
     <div class="container">
         <div class="stats">
@@ -57,7 +77,10 @@
             </div>
         </div>
         <div class="card">
-            <h2>Daftar Report Terbaru</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h2 style="margin:0;">Daftar Report</h2>
+                <button class="btn btn-primary" onclick="openModal()">+ Tambah Report</button>
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -66,47 +89,167 @@
                         <th>Jenis</th>
                         <th>Tanggal</th>
                         <th>Status</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    <tr>
-                        <td>1</td>
-                        <td>contoh-phising.com</td>
-                        <td>Phishing</td>
-                        <td>2026-04-08</td>
-                        <td><span class="badge done">Selesai</span></td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>fake-login.net</td>
-                        <td>Phishing</td>
-                        <td>2026-04-08</td>
-                        <td><span class="badge progress">Proses</span></td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>scam-site.org</td>
-                        <td>Scam</td>
-                        <td>2026-04-07</td>
-                        <td><span class="badge pending">Pending</span></td>
-                    </tr>
+                    <tr><td colspan="6" style="text-align:center;color:#999;">Memuat data...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
     <div class="footer">Dashboard Report &copy; 2026</div>
+
+    <!-- Modal Tambah/Edit -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <h3 id="modal-title">Tambah Report</h3>
+            <input type="hidden" id="edit-id">
+            <label>Domain</label>
+            <input type="text" id="input-domain" placeholder="contoh: phising-site.com">
+            <label>Jenis</label>
+            <select id="input-jenis">
+                <option value="Phishing">Phishing</option>
+                <option value="Scam">Scam</option>
+                <option value="Malware">Malware</option>
+                <option value="Spam">Spam</option>
+                <option value="Lainnya">Lainnya</option>
+            </select>
+            <label>Tanggal</label>
+            <input type="date" id="input-tanggal">
+            <label>Status</label>
+            <select id="input-status">
+                <option value="Pending">Pending</option>
+                <option value="Proses">Proses</option>
+                <option value="Selesai">Selesai</option>
+            </select>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal()">Batal</button>
+                <button class="btn btn-primary" onclick="saveReport()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        const SUPABASE_URL = 'https://uqpcveeumllgnspgetzf.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxcGN2ZWV1bWxsZ25zcGdldHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2Mzc5MDUsImV4cCI6MjA5MTIxMzkwNX0.A8a89VJ63T5ZSVHehmsVz_ITWMBNylJRZQoSc1nwS9g';
+        const headers = {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        };
+
+        // Clock
         function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').textContent = now.toLocaleString('id-ID');
+            document.getElementById('clock').textContent = new Date().toLocaleString('id-ID');
         }
         updateClock();
         setInterval(updateClock, 1000);
 
-        document.getElementById('total').textContent = '3';
-        document.getElementById('done').textContent = '1';
-        document.getElementById('progress').textContent = '1';
-        document.getElementById('pending').textContent = '1';
+        // Load data
+        async function loadData() {
+            try {
+                const res = await fetch(SUPABASE_URL + '/rest/v1/reports?order=created_at.desc', { headers });
+                const data = await res.json();
+                renderTable(data);
+                updateStats(data);
+            } catch (e) {
+                document.getElementById('table-body').innerHTML = '<tr><td colspan="6" style="text-align:center;color:red;">Gagal memuat data</td></tr>';
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('table-body');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">Belum ada data</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map((r, i) => {
+                const badgeClass = r.status === 'Selesai' ? 'done' : r.status === 'Proses' ? 'progress' : 'pending';
+                return `<tr>
+                    <td>${i + 1}</td>
+                    <td>${r.domain}</td>
+                    <td>${r.jenis}</td>
+                    <td>${r.tanggal}</td>
+                    <td><span class="badge ${badgeClass}">${r.status}</span></td>
+                    <td class="actions-cell">
+                        <button class="btn btn-edit" onclick="editReport(${r.id})">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteReport(${r.id})">Hapus</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateStats(data) {
+            document.getElementById('total').textContent = data.length;
+            document.getElementById('done').textContent = data.filter(r => r.status === 'Selesai').length;
+            document.getElementById('progress').textContent = data.filter(r => r.status === 'Proses').length;
+            document.getElementById('pending').textContent = data.filter(r => r.status === 'Pending').length;
+        }
+
+        // Modal
+        function openModal() {
+            document.getElementById('modal-title').textContent = 'Tambah Report';
+            document.getElementById('edit-id').value = '';
+            document.getElementById('input-domain').value = '';
+            document.getElementById('input-jenis').value = 'Phishing';
+            document.getElementById('input-tanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('input-status').value = 'Pending';
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        async function editReport(id) {
+            const res = await fetch(SUPABASE_URL + '/rest/v1/reports?id=eq.' + id, { headers });
+            const data = await res.json();
+            if (data.length === 0) return;
+            const r = data[0];
+            document.getElementById('modal-title').textContent = 'Edit Report';
+            document.getElementById('edit-id').value = r.id;
+            document.getElementById('input-domain').value = r.domain;
+            document.getElementById('input-jenis').value = r.jenis;
+            document.getElementById('input-tanggal').value = r.tanggal;
+            document.getElementById('input-status').value = r.status;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        async function saveReport() {
+            const id = document.getElementById('edit-id').value;
+            const body = {
+                domain: document.getElementById('input-domain').value,
+                jenis: document.getElementById('input-jenis').value,
+                tanggal: document.getElementById('input-tanggal').value,
+                status: document.getElementById('input-status').value
+            };
+            if (!body.domain) { alert('Domain wajib diisi!'); return; }
+
+            if (id) {
+                await fetch(SUPABASE_URL + '/rest/v1/reports?id=eq.' + id, {
+                    method: 'PATCH', headers, body: JSON.stringify(body)
+                });
+            } else {
+                await fetch(SUPABASE_URL + '/rest/v1/reports', {
+                    method: 'POST', headers, body: JSON.stringify(body)
+                });
+            }
+            closeModal();
+            loadData();
+        }
+
+        async function deleteReport(id) {
+            if (!confirm('Yakin hapus report ini?')) return;
+            await fetch(SUPABASE_URL + '/rest/v1/reports?id=eq.' + id, {
+                method: 'DELETE', headers
+            });
+            loadData();
+        }
+
+        // Init
+        loadData();
     </script>
 </body>
 </html>
