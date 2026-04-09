@@ -3,253 +3,686 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Report</title>
+    <title>Phishing Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; color: #333; }
-        .navbar { background: #1a73e8; color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
-        .navbar h1 { font-size: 20px; }
-        .navbar span { font-size: 14px; opacity: 0.8; }
-        .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .stat-card .label { font-size: 13px; color: #666; margin-bottom: 8px; }
-        .stat-card .value { font-size: 28px; font-weight: 700; }
-        .stat-card .value.blue { color: #1a73e8; }
-        .stat-card .value.green { color: #0d9488; }
-        .stat-card .value.orange { color: #e67e22; }
-        .stat-card .value.red { color: #e74c3c; }
-        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 24px; }
-        .card h2 { font-size: 16px; margin-bottom: 16px; color: #333; }
+
+        :root {
+            --bg-primary: #16141c;
+            --bg-secondary: #1c1a24;
+            --bg-card: #221f2e;
+            --bg-hover: #2a2738;
+            --text-primary: #eae7f1;
+            --text-secondary: #8a8698;
+            --text-muted: #5c586a;
+            --primary: #6d4aff;
+            --accent-green: #1ea885;
+            --accent-red: #f44336;
+            --accent-orange: #ff9800;
+            --accent-pink: #e05aff;
+            --border-color: #2e2b3a;
+            --border-subtle: #262335;
+            --sidebar-width: 260px;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f7f7f8;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-hover: #f3f3f5;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --primary: #6d4aff;
+            --accent-green: #059669;
+            --accent-red: #dc2626;
+            --accent-orange: #d97706;
+            --border-color: #e5e7eb;
+            --border-subtle: #f0f0f2;
+            --shadow-card: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        [data-theme="light"] .sidebar { background: #ffffff; border-color: #e5e7eb; }
+        [data-theme="light"] .sidebar-header h3 { color: #1a1a2e; }
+        [data-theme="light"] .user-avatar { background: rgba(109,74,255,0.1); color: #6d4aff; }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); }
+
+        /* ===== LOGIN PAGE ===== */
+        .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-container { width: 100%; max-width: 420px; padding: 20px; }
+        .login-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 40px 32px; box-shadow: var(--shadow-card); }
+        .login-header { text-align: center; margin-bottom: 32px; }
+        .login-header h1 { font-size: 20px; color: var(--text-primary); margin-top: 12px; font-weight: 700; }
+        .login-header p { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+        .login-error { background: rgba(244,67,54,0.1); border: 1px solid rgba(244,67,54,0.25); color: var(--accent-red); padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 20px; display: none; align-items: center; gap: 8px; }
+        .login-error.show { display: flex; }
+        .login-form .form-group { margin-bottom: 20px; }
+        .login-form label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+        .input-icon { position: relative; }
+        .input-icon svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .input-icon input { width: 100%; padding: 10px 12px 10px 38px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 14px; font-family: inherit; transition: var(--transition); }
+        .input-icon input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(109,74,255,0.15); }
+        .login-btn { width: 100%; padding: 11px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition); }
+        .login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* ===== APP LAYOUT ===== */
+        .app { display: none; min-height: 100vh; }
+        .app.active { display: flex; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar { width: var(--sidebar-width); background: var(--bg-secondary); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 50; overflow-y: auto; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border-subtle); }
+        .sidebar-header h3 { font-size: 15px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+        .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 14px 16px; margin: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); border: 1px solid var(--border-subtle); }
+        .sidebar-user:hover { background: var(--bg-hover); }
+        .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(109,74,255,0.2); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+        .user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .user-role { font-size: 11px; color: var(--text-muted); }
+
+        .sidebar-menu { list-style: none; padding: 8px 0; flex: 1; }
+        .sidebar-menu li a { display: flex; align-items: center; gap: 10px; padding: 9px 20px; color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: var(--transition); border-left: 3px solid transparent; }
+        .sidebar-menu li a:hover { color: var(--text-primary); background: var(--bg-hover); }
+        .sidebar-menu li.active a { color: var(--primary); background: rgba(109,74,255,0.08); border-left-color: var(--primary); }
+        .sidebar-menu .icon { width: 18px; height: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .sidebar-divider { height: 1px; background: var(--border-color); margin: 8px 12px; }
+        .logout-link { color: var(--accent-red) !important; }
+        .logout-link:hover { background: rgba(244,67,54,0.1) !important; }
+        .sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; }
+
+        /* ===== CONTENT ===== */
+        .content { flex: 1; margin-left: var(--sidebar-width); }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 28px; border-bottom: 1px solid var(--border-color); background: var(--bg-secondary); }
+        .topbar-title { display: flex; align-items: center; gap: 12px; }
+        .topbar-title h1 { font-size: 16px; font-weight: 700; }
+        .topbar-icon { color: var(--text-muted); display: flex; }
+        .topbar-actions { display: flex; gap: 8px; }
+        .topbar-btn { background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-secondary); width: 34px; height: 34px; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+        .topbar-btn:hover { color: var(--text-primary); border-color: var(--primary); }
+        .main-content { padding: 24px 28px; }
+
+        /* ===== PAGE VISIBILITY ===== */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* ===== STATS GRID ===== */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; transition: var(--transition); }
+        .stat-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .stat-value { font-size: 28px; font-weight: 800; margin-top: 6px; }
+        .stat-value.purple { color: var(--primary); }
+        .stat-value.green { color: var(--accent-green); }
+        .stat-value.orange { color: var(--accent-orange); }
+        .stat-value.red { color: var(--accent-red); }
+
+        /* ===== CARD ===== */
+        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .card-header h3 { font-size: 15px; font-weight: 700; }
+
+        /* ===== TABLE ===== */
+        .table-wrap { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
-        th { background: #f8f9fa; font-weight: 600; color: #555; }
-        tr:hover { background: #f8f9fa; }
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .badge.done { background: #d1fae5; color: #065f46; }
-        .badge.progress { background: #fef3c7; color: #92400e; }
-        .badge.pending { background: #fee2e2; color: #991b1b; }
-        .footer { text-align: center; padding: 24px; color: #999; font-size: 13px; }
-        /* Modal & Form */
-        .btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
-        .btn-primary { background: #1a73e8; color: white; }
-        .btn-primary:hover { background: #1557b0; }
-        .btn-danger { background: #e74c3c; color: white; padding: 4px 10px; font-size: 12px; }
-        .btn-danger:hover { background: #c0392b; }
-        .btn-edit { background: #e67e22; color: white; padding: 4px 10px; font-size: 12px; }
-        .btn-edit:hover { background: #d35400; }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
+        th, td { text-align: left; padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--border-subtle); }
+        th { color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg-hover); }
+        tr:hover { background: var(--bg-hover); }
+        td { color: var(--text-secondary); }
+
+        /* ===== BADGES ===== */
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-success { background: rgba(30,168,133,0.15); color: var(--accent-green); }
+        .badge-warning { background: rgba(255,152,0,0.15); color: var(--accent-orange); }
+        .badge-danger { background: rgba(244,67,54,0.15); color: var(--accent-red); }
+        .badge-info { background: rgba(109,74,255,0.15); color: var(--primary); }
+        .badge-secondary { background: rgba(140,140,140,0.15); color: var(--text-muted); }
+
+        /* ===== BUTTONS ===== */
+        .btn { padding: 7px 14px; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; transition: var(--transition); }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary { background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-sm { padding: 5px 8px; font-size: 12px; }
+        .btn-outline { background: none; border: 1px solid var(--border-color); color: var(--text-secondary); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-danger-outline { background: none; border: 1px solid rgba(244,67,54,0.3); color: var(--accent-red); }
+        .btn-danger-outline:hover { background: rgba(244,67,54,0.1); }
+
+        /* ===== MODAL ===== */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; display: none; align-items: center; justify-content: center; }
         .modal-overlay.active { display: flex; }
-        .modal { background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 450px; }
-        .modal h3 { margin-bottom: 16px; }
-        .modal label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; margin-top: 12px; }
-        .modal input, .modal select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
-        .modal-actions { margin-top: 20px; display: flex; gap: 8px; justify-content: flex-end; }
-        .btn-cancel { background: #eee; color: #333; }
-        .header-actions { display: flex; align-items: center; gap: 12px; }
-        .actions-cell { display: flex; gap: 4px; }
+        .modal { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); width: 90%; max-width: 480px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-color); }
+        .modal-header h3 { font-size: 16px; }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; padding: 0 4px; }
+        .modal-close:hover { color: var(--text-primary); }
+        .modal-body { padding: 20px; }
+        .modal-body .form-group { margin-bottom: 16px; }
+        .modal-body label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+        .modal-body input, .modal-body select { width: 100%; padding: 9px 12px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 14px; font-family: inherit; }
+        .modal-body input:focus, .modal-body select:focus { outline: none; border-color: var(--primary); }
+        .modal-body small { display: block; margin-top: 4px; font-size: 11px; color: var(--text-muted); }
+        .modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding-top: 8px; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .sidebar { width: 60px; }
+            .sidebar-header h3 span, .sidebar-menu li a span:not(.icon), .sidebar-user .user-info, .sidebar-footer span { display: none; }
+            .content { margin-left: 60px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .main-content { padding: 16px; }
+            .login-card { padding: 28px 20px; }
+        }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>Dashboard Report</h1>
-        <div class="header-actions">
-            <span id="clock"></span>
-        </div>
-    </div>
-    <div class="container">
-        <div class="stats">
-            <div class="stat-card">
-                <div class="label">Total Report</div>
-                <div class="value blue" id="total">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Selesai</div>
-                <div class="value green" id="done">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Dalam Proses</div>
-                <div class="value orange" id="progress">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Pending</div>
-                <div class="value red" id="pending">0</div>
-            </div>
-        </div>
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <h2 style="margin:0;">Daftar Report</h2>
-                <button class="btn btn-primary" onclick="openModal()">+ Tambah Report</button>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Domain</th>
-                        <th>Jenis</th>
-                        <th>Tanggal</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    <tr><td colspan="6" style="text-align:center;color:#999;">Memuat data...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="footer">Dashboard Report &copy; 2026</div>
 
-    <!-- Modal Tambah/Edit -->
-    <div class="modal-overlay" id="modal">
-        <div class="modal">
-            <h3 id="modal-title">Tambah Report</h3>
-            <input type="hidden" id="edit-id">
-            <label>Domain</label>
-            <input type="text" id="input-domain" placeholder="contoh: phising-site.com">
-            <label>Jenis</label>
-            <select id="input-jenis">
-                <option value="Phishing">Phishing</option>
-                <option value="Scam">Scam</option>
-                <option value="Malware">Malware</option>
-                <option value="Spam">Spam</option>
-                <option value="Lainnya">Lainnya</option>
-            </select>
-            <label>Tanggal</label>
-            <input type="date" id="input-tanggal">
-            <label>Status</label>
-            <select id="input-status">
-                <option value="Pending">Pending</option>
-                <option value="Proses">Proses</option>
-                <option value="Selesai">Selesai</option>
-            </select>
-            <div class="modal-actions">
-                <button class="btn btn-cancel" onclick="closeModal()">Batal</button>
+<!-- ===== LOGIN PAGE ===== -->
+<div id="login-page" class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <h1>Phishing Dashboard</h1>
+                <p>Masuk untuk melanjutkan</p>
+            </div>
+            <div class="login-error" id="login-error">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span>Username atau password salah!</span>
+            </div>
+            <form class="login-form" onsubmit="doLogin(event)">
+                <div class="form-group">
+                    <label>Username</label>
+                    <div class="input-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input type="text" id="login-user" placeholder="Masukkan username" required autofocus>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <input type="password" id="login-pass" placeholder="Masukkan password" required>
+                    </div>
+                </div>
+                <button type="submit" class="login-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    Masuk
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div class="app" id="app">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-3px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Phishing Dashboard</span>
+            </h3>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar" id="user-avatar"></div>
+            <div class="user-info">
+                <div class="user-name" id="user-name-display"></div>
+                <div class="user-role" id="user-role-display"></div>
+            </div>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="active" id="nav-dashboard">
+                <a href="#" onclick="showPage('dashboard')">
+                    <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li id="nav-reports">
+                <a href="#" onclick="showPage('reports')">
+                    <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+                    <span>Reports</span>
+                </a>
+            </li>
+            <li id="nav-users" style="display:none">
+                <a href="#" onclick="showPage('users')">
+                    <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                    <span>Manajemen User</span>
+                </a>
+            </li>
+            <li class="sidebar-divider"></li>
+            <li>
+                <a href="#" onclick="doLogout()" class="logout-link">
+                    <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <span style="font-size:11px;color:var(--text-muted)">v2.0</span>
+            <button onclick="toggleTheme()" style="background:none;border:1px solid var(--border-color);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--text-muted);font-size:12px" title="Ganti tema">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="content">
+        <div class="topbar">
+            <div class="topbar-title">
+                <div class="topbar-icon" id="topbar-icon"></div>
+                <h1 id="topbar-title-text">Dashboard</h1>
+            </div>
+            <div class="topbar-actions">
+                <span id="clock" style="font-size:12px;color:var(--text-muted);margin-right:8px"></span>
+                <button class="topbar-btn" onclick="toggleTheme()" title="Ganti tema">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="main-content">
+
+            <!-- Page: Dashboard -->
+            <div class="page active" id="page-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-label">Total Report</div><div class="stat-value purple" id="stat-total">0</div></div>
+                    <div class="stat-card"><div class="stat-label">Selesai</div><div class="stat-value green" id="stat-done">0</div></div>
+                    <div class="stat-card"><div class="stat-label">Dalam Proses</div><div class="stat-value orange" id="stat-progress">0</div></div>
+                    <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value red" id="stat-pending">0</div></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>Report Terbaru</h3></div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>No</th><th>Domain</th><th>Jenis</th><th>Tanggal</th><th>Status</th></tr></thead>
+                            <tbody id="dashboard-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Reports -->
+            <div class="page" id="page-reports">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Daftar Report</h3>
+                        <button class="btn btn-primary" id="btn-add-report" onclick="openReportModal()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Tambah Report
+                        </button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>No</th><th>Domain</th><th>Jenis</th><th>Tanggal</th><th>Status</th><th id="col-aksi" width="120">Aksi</th></tr></thead>
+                            <tbody id="report-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Users (Admin only) -->
+            <div class="page" id="page-users">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Manajemen User</h3>
+                        <button class="btn btn-primary" onclick="openUserModal()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Tambah User
+                        </button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>Username</th><th>Nama</th><th>Level</th><th>Status</th><th width="120">Aksi</th></tr></thead>
+                            <tbody id="user-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<!-- Modal Report -->
+<div class="modal-overlay" id="modal-report">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="report-modal-title">Tambah Report</h3>
+            <button class="modal-close" onclick="closeModal('modal-report')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="report-edit-id">
+            <div class="form-group">
+                <label>Domain</label>
+                <input type="text" id="input-domain" placeholder="contoh: phising-site.com">
+            </div>
+            <div class="form-group">
+                <label>Jenis</label>
+                <select id="input-jenis">
+                    <option value="Phishing">Phishing</option>
+                    <option value="Scam">Scam</option>
+                    <option value="Malware">Malware</option>
+                    <option value="Spam">Spam</option>
+                    <option value="Lainnya">Lainnya</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="input-tanggal">
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="input-status">
+                    <option value="Pending">Pending</option>
+                    <option value="Proses">Proses</option>
+                    <option value="Selesai">Selesai</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-report')">Batal</button>
                 <button class="btn btn-primary" onclick="saveReport()">Simpan</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        const SUPABASE_URL = 'https://uqpcveeumllgnspgetzf.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxcGN2ZWV1bWxsZ25zcGdldHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2Mzc5MDUsImV4cCI6MjA5MTIxMzkwNX0.A8a89VJ63T5ZSVHehmsVz_ITWMBNylJRZQoSc1nwS9g';
-        const headers = {
-            'apikey': SUPABASE_KEY,
-            'Authorization': 'Bearer ' + SUPABASE_KEY,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-        };
+<!-- Modal User -->
+<div class="modal-overlay" id="modal-user">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="user-modal-title">Tambah User</h3>
+            <button class="modal-close" onclick="closeModal('modal-user')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="user-edit-id">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="input-username" placeholder="Username">
+            </div>
+            <div class="form-group" id="pw-group">
+                <label>Password</label>
+                <input type="password" id="input-password" placeholder="Password">
+                <small>Min 6 karakter</small>
+            </div>
+            <div class="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="input-name" placeholder="Nama lengkap">
+            </div>
+            <div class="form-group">
+                <label>Level</label>
+                <select id="input-role">
+                    <option value="admin">Admin</option>
+                    <option value="operator">Operator</option>
+                    <option value="viewer">Viewer</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-user')">Batal</button>
+                <button class="btn btn-primary" onclick="saveUser()">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // Clock
-        function updateClock() {
-            document.getElementById('clock').textContent = new Date().toLocaleString('id-ID');
+<script>
+// ===== SUPABASE CONFIG =====
+const SB_URL = 'https://uqpcveeumllgnspgetzf.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxcGN2ZWV1bWxsZ25zcGdldHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2Mzc5MDUsImV4cCI6MjA5MTIxMzkwNX0.A8a89VJ63T5ZSVHehmsVz_ITWMBNylJRZQoSc1nwS9g';
+const sbHeaders = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+async function sbFetch(table, opts = {}) {
+    const params = opts.params || '';
+    const url = `${SB_URL}/rest/v1/${table}${params ? '?' + params : ''}`;
+    const res = await fetch(url, { method: opts.method || 'GET', headers: sbHeaders, body: opts.body ? JSON.stringify(opts.body) : undefined });
+    return res.json();
+}
+
+// ===== LOCAL DATA =====
+let localUsers = JSON.parse(localStorage.getItem('pd_users') || 'null') || [
+    { id: 1, username: 'admin', password: 'admin123', name: 'Administrator', level: 'admin', active: true },
+    { id: 2, username: 'operator1', password: 'operator123', name: 'Operator Satu', level: 'operator', active: true },
+    { id: 3, username: 'viewer1', password: 'viewer123', name: 'Viewer Satu', level: 'viewer', active: true }
+];
+let nextUserId = Math.max(...localUsers.map(u => u.id)) + 1;
+
+function saveLocalUsers() { localStorage.setItem('pd_users', JSON.stringify(localUsers)); }
+
+let reports = [];
+let currentUser = null;
+
+// ===== THEME =====
+function toggleTheme() {
+    const t = document.documentElement.getAttribute('data-theme') === 'light' ? '' : 'light';
+    document.documentElement.setAttribute('data-theme', t || '');
+    localStorage.setItem('pd_theme', t);
+}
+(function() { const t = localStorage.getItem('pd_theme'); if (t) document.documentElement.setAttribute('data-theme', t); })();
+
+// ===== CLOCK =====
+function updateClock() {
+    const el = document.getElementById('clock');
+    if (el) el.textContent = new Date().toLocaleString('id-ID');
+}
+setInterval(updateClock, 1000);
+
+// ===== LOGIN =====
+function doLogin(e) {
+    e.preventDefault();
+    const username = document.getElementById('login-user').value.trim();
+    const password = document.getElementById('login-pass').value;
+    const user = localUsers.find(u => u.username === username && u.password === password);
+    if (!user) { document.getElementById('login-error').classList.add('show'); return; }
+    if (!user.active) { document.getElementById('login-error').querySelector('span').textContent = 'Akun dinonaktifkan. Hubungi admin.'; document.getElementById('login-error').classList.add('show'); return; }
+    document.getElementById('login-error').classList.remove('show');
+    currentUser = user;
+    sessionStorage.setItem('pd_session', JSON.stringify(user));
+    enterApp();
+}
+
+function doLogout() {
+    currentUser = null;
+    sessionStorage.removeItem('pd_session');
+    document.getElementById('app').classList.remove('active');
+    document.getElementById('login-page').style.display = 'flex';
+    document.getElementById('login-user').value = '';
+    document.getElementById('login-pass').value = '';
+}
+
+function enterApp() {
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    const initials = currentUser.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    document.getElementById('user-avatar').textContent = initials;
+    document.getElementById('user-name-display').textContent = currentUser.name;
+    const levelLabel = currentUser.level === 'admin' ? 'Admin' : currentUser.level === 'operator' ? 'Operator' : 'Viewer';
+    document.getElementById('user-role-display').textContent = levelLabel;
+    updateClock();
+
+    const isAdmin = currentUser.level === 'admin';
+    const isViewer = currentUser.level === 'viewer';
+    document.getElementById('nav-users').style.display = isAdmin ? '' : 'none';
+    document.getElementById('btn-add-report').style.display = isViewer ? 'none' : '';
+
+    showPage('dashboard');
+    loadReports();
+    if (isAdmin) loadUsers();
+}
+
+// Session restore
+(function() {
+    const saved = sessionStorage.getItem('pd_session');
+    if (saved) { currentUser = JSON.parse(saved); enterApp(); }
+})();
+
+// ===== NAVIGATION =====
+const pageIcons = {
+    dashboard: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+    reports: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+    users: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+};
+const pageTitles = { dashboard: 'Dashboard', reports: 'Daftar Report', users: 'Manajemen User' };
+
+function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+    const nav = document.getElementById('nav-' + page);
+    if (nav) nav.classList.add('active');
+    document.getElementById('topbar-icon').innerHTML = pageIcons[page] || '';
+    document.getElementById('topbar-title-text').textContent = pageTitles[page] || '';
+}
+
+// ===== REPORTS (Supabase with fallback) =====
+let useSupabase = true;
+
+async function loadReports() {
+    try {
+        if (useSupabase) {
+            reports = await sbFetch('reports', { params: 'select=*&order=id.desc' });
+            if (!Array.isArray(reports)) { useSupabase = false; reports = JSON.parse(localStorage.getItem('pd_reports') || '[]'); }
         }
-        updateClock();
-        setInterval(updateClock, 1000);
+    } catch { useSupabase = false; reports = JSON.parse(localStorage.getItem('pd_reports') || '[]'); }
+    renderReports();
+}
 
-        // Load data
-        async function loadData() {
-            try {
-                const res = await fetch(SUPABASE_URL + '/rest/v1/reports?order=created_at.desc', { headers });
-                const data = await res.json();
-                renderTable(data);
-                updateStats(data);
-            } catch (e) {
-                document.getElementById('table-body').innerHTML = '<tr><td colspan="6" style="text-align:center;color:red;">Gagal memuat data</td></tr>';
-            }
-        }
+function renderReports() {
+    const isViewer = currentUser.level === 'viewer';
+    const colAksi = document.getElementById('col-aksi');
+    if (colAksi) colAksi.style.display = isViewer ? 'none' : '';
 
-        function renderTable(data) {
-            const tbody = document.getElementById('table-body');
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">Belum ada data</td></tr>';
-                return;
-            }
-            tbody.innerHTML = data.map((r, i) => {
-                const badgeClass = r.status === 'Selesai' ? 'done' : r.status === 'Proses' ? 'progress' : 'pending';
-                return `<tr>
-                    <td>${i + 1}</td>
-                    <td>${r.domain}</td>
-                    <td>${r.jenis}</td>
-                    <td>${r.tanggal}</td>
-                    <td><span class="badge ${badgeClass}">${r.status}</span></td>
-                    <td class="actions-cell">
-                        <button class="btn btn-edit" onclick="editReport(${r.id})">Edit</button>
-                        <button class="btn btn-danger" onclick="deleteReport(${r.id})">Hapus</button>
-                    </td>
-                </tr>`;
-            }).join('');
-        }
+    // Stats
+    document.getElementById('stat-total').textContent = reports.length;
+    document.getElementById('stat-done').textContent = reports.filter(r => r.status === 'Selesai').length;
+    document.getElementById('stat-progress').textContent = reports.filter(r => r.status === 'Proses').length;
+    document.getElementById('stat-pending').textContent = reports.filter(r => r.status === 'Pending').length;
 
-        function updateStats(data) {
-            document.getElementById('total').textContent = data.length;
-            document.getElementById('done').textContent = data.filter(r => r.status === 'Selesai').length;
-            document.getElementById('progress').textContent = data.filter(r => r.status === 'Proses').length;
-            document.getElementById('pending').textContent = data.filter(r => r.status === 'Pending').length;
-        }
+    const empty = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px">Belum ada data</td></tr>';
 
-        // Modal
-        function openModal() {
-            document.getElementById('modal-title').textContent = 'Tambah Report';
-            document.getElementById('edit-id').value = '';
-            document.getElementById('input-domain').value = '';
-            document.getElementById('input-jenis').value = 'Phishing';
-            document.getElementById('input-tanggal').value = new Date().toISOString().split('T')[0];
-            document.getElementById('input-status').value = 'Pending';
-            document.getElementById('modal').classList.add('active');
-        }
+    // Dashboard table (top 5)
+    const dash = document.getElementById('dashboard-table');
+    const top5 = reports.slice(0, 5);
+    dash.innerHTML = top5.length === 0 ? empty : top5.map((r, i) => `<tr>
+        <td>${i + 1}</td><td style="color:var(--text-primary);font-weight:500">${r.domain}</td><td>${r.jenis}</td><td>${r.tanggal}</td>
+        <td><span class="badge ${statusBadge(r.status)}">${r.status}</span></td>
+    </tr>`).join('');
 
-        function closeModal() {
-            document.getElementById('modal').classList.remove('active');
-        }
+    // Full table
+    const tbody = document.getElementById('report-table');
+    tbody.innerHTML = reports.length === 0 ? empty : reports.map((r, i) => `<tr>
+        <td>${i + 1}</td><td style="color:var(--text-primary);font-weight:500">${r.domain}</td><td>${r.jenis}</td><td>${r.tanggal}</td>
+        <td><span class="badge ${statusBadge(r.status)}">${r.status}</span></td>
+        <td style="${isViewer ? 'display:none' : ''}">
+            <button class="btn btn-sm btn-outline" onclick="editReport(${r.id})" title="Edit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            <button class="btn btn-sm btn-danger-outline" onclick="deleteReport(${r.id})" title="Hapus"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        </td>
+    </tr>`).join('');
+}
 
-        async function editReport(id) {
-            const res = await fetch(SUPABASE_URL + '/rest/v1/reports?id=eq.' + id, { headers });
-            const data = await res.json();
-            if (data.length === 0) return;
-            const r = data[0];
-            document.getElementById('modal-title').textContent = 'Edit Report';
-            document.getElementById('edit-id').value = r.id;
-            document.getElementById('input-domain').value = r.domain;
-            document.getElementById('input-jenis').value = r.jenis;
-            document.getElementById('input-tanggal').value = r.tanggal;
-            document.getElementById('input-status').value = r.status;
-            document.getElementById('modal').classList.add('active');
-        }
+function statusBadge(s) { return s === 'Selesai' ? 'badge-success' : s === 'Proses' ? 'badge-warning' : 'badge-danger'; }
 
-        async function saveReport() {
-            const id = document.getElementById('edit-id').value;
-            const body = {
-                domain: document.getElementById('input-domain').value,
-                jenis: document.getElementById('input-jenis').value,
-                tanggal: document.getElementById('input-tanggal').value,
-                status: document.getElementById('input-status').value
-            };
-            if (!body.domain) { alert('Domain wajib diisi!'); return; }
+function openReportModal(r) {
+    document.getElementById('report-modal-title').textContent = r ? 'Edit Report' : 'Tambah Report';
+    document.getElementById('report-edit-id').value = r ? r.id : '';
+    document.getElementById('input-domain').value = r ? r.domain : '';
+    document.getElementById('input-jenis').value = r ? r.jenis : 'Phishing';
+    document.getElementById('input-tanggal').value = r ? r.tanggal : new Date().toISOString().split('T')[0];
+    document.getElementById('input-status').value = r ? r.status : 'Pending';
+    document.getElementById('modal-report').classList.add('active');
+}
 
-            if (id) {
-                await fetch(SUPABASE_URL + '/rest/v1/reports?id=eq.' + id, {
-                    method: 'PATCH', headers, body: JSON.stringify(body)
-                });
-            } else {
-                await fetch(SUPABASE_URL + '/rest/v1/reports', {
-                    method: 'POST', headers, body: JSON.stringify(body)
-                });
-            }
-            closeModal();
-            loadData();
-        }
+function editReport(id) { const r = reports.find(x => x.id === id); if (r) openReportModal(r); }
 
-        async function deleteReport(id) {
-            if (!confirm('Yakin hapus report ini?')) return;
-            await fetch(SUPABASE_URL + '/rest/v1/reports?id=eq.' + id, {
-                method: 'DELETE', headers
-            });
-            loadData();
-        }
+async function saveReport() {
+    const id = document.getElementById('report-edit-id').value;
+    const domain = document.getElementById('input-domain').value.trim();
+    if (!domain) { alert('Domain wajib diisi!'); return; }
+    const data = { domain, jenis: document.getElementById('input-jenis').value, tanggal: document.getElementById('input-tanggal').value, status: document.getElementById('input-status').value };
 
-        // Init
-        loadData();
-    </script>
+    if (useSupabase) {
+        if (id) await fetch(`${SB_URL}/rest/v1/reports?id=eq.${id}`, { method: 'PATCH', headers: sbHeaders, body: JSON.stringify(data) });
+        else await fetch(`${SB_URL}/rest/v1/reports`, { method: 'POST', headers: sbHeaders, body: JSON.stringify(data) });
+    } else {
+        if (id) { const idx = reports.findIndex(r => r.id == id); if (idx !== -1) Object.assign(reports[idx], data); }
+        else { data.id = Date.now(); reports.unshift(data); }
+        localStorage.setItem('pd_reports', JSON.stringify(reports));
+    }
+    closeModal('modal-report');
+    loadReports();
+}
+
+async function deleteReport(id) {
+    if (!confirm('Yakin hapus report ini?')) return;
+    if (useSupabase) await fetch(`${SB_URL}/rest/v1/reports?id=eq.${id}`, { method: 'DELETE', headers: sbHeaders });
+    else { reports = reports.filter(r => r.id !== id); localStorage.setItem('pd_reports', JSON.stringify(reports)); }
+    loadReports();
+}
+
+// ===== USERS (Local + localStorage) =====
+function loadUsers() {
+    const tbody = document.getElementById('user-table');
+    tbody.innerHTML = localUsers.map((u, i) => `<tr>
+        <td>${i + 1}</td>
+        <td style="color:var(--text-primary);font-weight:600">${u.username}</td>
+        <td>${u.name}</td>
+        <td><span class="badge ${u.level === 'admin' ? 'badge-danger' : u.level === 'operator' ? 'badge-warning' : 'badge-info'}">${u.level.charAt(0).toUpperCase() + u.level.slice(1)}</span></td>
+        <td><span class="badge ${u.active ? 'badge-success' : 'badge-secondary'}">${u.active ? 'Aktif' : 'Nonaktif'}</span></td>
+        <td>
+            <button class="btn btn-sm btn-outline" onclick="editUser(${u.id})" title="Edit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            ${u.id !== currentUser.id ? `<button class="btn btn-sm btn-danger-outline" onclick="deleteUser(${u.id})" title="Hapus"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>` : ''}
+        </td>
+    </tr>`).join('');
+}
+
+function openUserModal(u) {
+    document.getElementById('user-modal-title').textContent = u ? 'Edit User' : 'Tambah User';
+    document.getElementById('user-edit-id').value = u ? u.id : '';
+    document.getElementById('input-username').value = u ? u.username : '';
+    document.getElementById('input-name').value = u ? u.name : '';
+    document.getElementById('input-role').value = u ? u.level : 'operator';
+    document.getElementById('input-password').value = '';
+    document.getElementById('pw-group').style.display = u ? 'none' : '';
+    document.getElementById('modal-user').classList.add('active');
+}
+
+function editUser(id) { const u = localUsers.find(x => x.id === id); if (u) openUserModal(u); }
+
+function saveUser() {
+    const id = document.getElementById('user-edit-id').value;
+    const username = document.getElementById('input-username').value.trim();
+    const password = document.getElementById('input-password').value;
+    const name = document.getElementById('input-name').value.trim();
+    const level = document.getElementById('input-role').value;
+    if (!username || !name) { alert('Username dan nama wajib diisi!'); return; }
+    if (!id && (!password || password.length < 6)) { alert('Password min 6 karakter!'); return; }
+
+    if (id) {
+        const idx = localUsers.findIndex(u => u.id == id);
+        if (idx !== -1) { localUsers[idx].username = username; localUsers[idx].name = name; localUsers[idx].level = level; }
+    } else {
+        if (localUsers.find(u => u.username === username)) { alert('Username sudah ada!'); return; }
+        localUsers.push({ id: nextUserId++, username, password, name, level, active: true });
+    }
+    saveLocalUsers();
+    closeModal('modal-user');
+    loadUsers();
+}
+
+function deleteUser(id) {
+    if (!confirm('Yakin hapus user ini?')) return;
+    localUsers = localUsers.filter(u => u.id !== id);
+    saveLocalUsers();
+    loadUsers();
+}
+
+// ===== MODAL =====
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+</script>
 </body>
 </html>
